@@ -151,7 +151,7 @@ Inherit.prototype.matchRules = function (val) {
     if (!rule.selectors) return;
 
     var matchedSelectors = rule.selectors.filter(function (selector) {
-      return selector.match(replaceRegExp(val))
+      return selector.match(matchRegExp(val))
     })
 
     if (!matchedSelectors.length) return;
@@ -206,8 +206,9 @@ function isPlaceholder(val) {
   return val[0] === '%';
 }
 
-function replaceRegExp(val) {
-  var expression = escapeRegExp(val) + '($|\\s|\\>|\\+|~|\\:|\\[)';
+
+function matchRegExp(val) {
+  var expression = escapeRegExp(val) + '($|\\s|\\>|\\+|~|\\::?|\\[)';
   var expressionPrefix = '(^|\\s|\\>|\\+|~)';
   if (isPlaceholder(val)) {
     // We just want to match an empty group here to preserve the arguments we
@@ -215,6 +216,12 @@ function replaceRegExp(val) {
     expressionPrefix = '()';
   }
   return new RegExp(expressionPrefix + expression, 'g');
+}
+
+function replaceRegExp(val) {
+  var operatorRegex = /($|::?|\[)/g;
+  if (val.match(operatorRegex)) val = val.substring(0, val.search(operatorRegex))
+  return matchRegExp(val)
 }
 
 function escapeRegExp(str) {
